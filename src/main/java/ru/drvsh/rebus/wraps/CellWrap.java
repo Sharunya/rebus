@@ -15,7 +15,7 @@ public class CellWrap<T extends XSSFCell> {
         this.cell = (T) cell;
     }
 
-    public T getCell() {
+    public T getRawCell() {
         return cell;
     }
 
@@ -23,8 +23,12 @@ public class CellWrap<T extends XSSFCell> {
         return new RowWrap(cell.getRow());
     }
 
+    public boolean isNull() {
+        return cell == null || getRawValue() == null;
+    }
+
     public String getStrValue() {
-        if (cell == null) return "";
+        if (this.isNull()) return "";
         String result = null;
         CellType cellType = cell.getCellType();
         switch (cellType) {
@@ -48,4 +52,7 @@ public class CellWrap<T extends XSSFCell> {
         return result;
     }
 
+    public String getRawValue() {
+        return cell.getRawValue();
+    }
 }

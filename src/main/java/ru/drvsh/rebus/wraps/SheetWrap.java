@@ -9,35 +9,27 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class SheetWrap<T extends XSSFSheet> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SheetWrap.class.getName());
     private final T sheet;
+    private List<CellRangeAddress> mergedRegions;
 
     @SuppressWarnings("unchecked")
     public SheetWrap(Sheet sheet) {
         this.sheet = (T) sheet;
     }
 
-    public T getSheet() {
+    public List<CellRangeAddress> getMergedRegions() {
+        if (mergedRegions == null) mergedRegions = sheet.getMergedRegions();
+        return mergedRegions;
+    }
+
+    public T getRawSheet() {
         return sheet;
     }
 
-    /*   public XSSFCell getCellBy(CellWrap cell) {
-           RowWrap row = cell.getRow();
-           if (cell == null) return null;
-           CellRangeAddress rangeAddress = getMergedRegion(row.getRowNum(), (short) cell.getColumnIndex());
-           if (rangeAddress != null) {
-               for (CellAddress address : rangeAddress) {
-                   XSSFCell cellTmp = getCellByAddress(address);
-                   if (cellTmp != null) {
-                       cell = cellTmp;
-                       break;
-                   }
-               }
-           }
-           return cell;
-       }
-   */
     private CellRangeAddress getMergedRegion(int rowNum, short cellNum) {
         for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
             CellRangeAddress merged = sheet.getMergedRegion(i);
@@ -57,12 +49,13 @@ public class SheetWrap<T extends XSSFSheet> {
     }
 
     public CellRangeAddress getCurrProdBlock(RowWrap row) {
-        CellRangeAddress rangeAddress = sheet.getMergedRegions()
+        CellRangeAddress rangeAddress = getMergedRegions()
                 .stream()
-                .filter(cellAddresses -> cellAddresses.isInRange(row.getCell(0).getCell()))
+                .filter(cellAddresses -> cellAddresses.isInRange(row.getCell(row.getFirstCellNum()).getRawCell()))
                 .findFirst()
                 .orElse(null);
-        return rangeAddress == null ? null : new CellRangeAddress(rangeAddress.getFirstRow(), rangeAddress.getLastRow(), rangeAddress.getFirstColumn(), row.getLastCellNum());
+        return rangeAddress != null ? new CellRangeAddress(rangeAddress.getFirstRow(), rangeAddress.getLastRow(), rangeAddress.getFirstColumn(), row.getLastCellNum())
+                : new CellRangeAddress(row.getRowNum(), row.getRowNum(), row.getFirstCellNum(), row.getLastCellNum());
     }
 
     public String getSheetName() {

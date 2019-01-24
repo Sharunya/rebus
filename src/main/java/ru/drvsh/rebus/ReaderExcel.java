@@ -25,13 +25,11 @@ public class ReaderExcel {
     private static final int C = 2;
     private static final int D = 3;
     private static final int E = 4;
-
-
+    //
+    protected Map<String, ClauseBean> clauseList = new HashMap<>();
+    protected List<ProductBeen> productList = new ArrayList<>();
+    protected MenuItems menuItems = null;
     private File file = new File("./source.xlsx");
-
-    private MenuItems menuItems = null;
-    private Map<String, ClauseBean> clauseList = new HashMap<>();
-    private List<ProductBeen> productList = new ArrayList<>();
     /**
      * Первая колонка
      */
@@ -102,6 +100,7 @@ public class ReaderExcel {
     public void getDataExcel() {
         try {
             readExcel();
+
         } catch (IOException e) {
             LOGGER.error("Ошибка чтения", e);
         }

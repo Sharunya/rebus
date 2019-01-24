@@ -12,4 +12,30 @@ public class SpecificationBean {
         this.idClause = idClause;
         this.clause = clause;
     }
+
+    public String getSpecification() {
+        return specification;
+    }
+
+    public String getRequirement() {
+        return requirement;
+    }
+
+    public String getIdClause() {
+        return idClause;
+    }
+
+    public String getClause() {
+        return clause;
+    }
+
+    @Override
+    public String toString() {
+        return "SpecificationBean{" +
+                "specification='" + specification + '\'' +
+                ", requirement='" + requirement + '\'' +
+                ", idClause='" + idClause + '\'' +
+                ", clause='" + clause + '\'' +
+                '}';
+    }
 }

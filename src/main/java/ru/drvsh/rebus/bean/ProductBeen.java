@@ -25,4 +25,25 @@ public class ProductBeen {
     public CellRangeAddress getRangeAddress() {
         return rangeAddress;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<SpecificationBean> getSpecificationList() {
+        return specificationList;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductBeen{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", specificationList=" + specificationList +
+                '}';
+    }
 }

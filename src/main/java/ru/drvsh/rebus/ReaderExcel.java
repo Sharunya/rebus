@@ -53,14 +53,11 @@ public class ReaderExcel {
         this.selectedFile = selectedFile;
 
         Iterator<Sheet> iterator = null;
-        LOGGER.debug("Try to find Codes");
         try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(selectedFile))) {
             iterator = workbook.sheetIterator();
             XSSFSheet origSheet = workbook.getSheet(SHEET_NAME_CODS);
-            LOGGER.debug("origSheet == {}", origSheet);
 
             SheetWrap sheet = new SheetWrap(origSheet);
-            LOGGER.info("Данные из таблицы: {}", sheet.getSheetName());
             for (Row rowIter : sheet.getRawSheet()) {
                 RowWrap row = new RowWrap(rowIter);
                 firstCell = row.getFirstCellNum();

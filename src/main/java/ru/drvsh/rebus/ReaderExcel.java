@@ -18,6 +18,7 @@ import org.apache.poi.ooxml.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class ReaderExcel {
     private static final int C = 2;
     private static final int D = 3;
     private static final int E = 4;
-    public File selectedFile = new File("./source.xlsx");
+    public File selectedFile = null;
     //
     protected Map<String, ClauseBean> clauseList = new HashMap<>();
     protected List<ProductBeen> productList = new ArrayList<>();
@@ -48,10 +49,17 @@ public class ReaderExcel {
     private int firstCell;
 
     public void readExcel(File selectedFile) throws IOException, ParseException {
+        LOGGER.debug("{} {} {}", selectedFile, selectedFile.getPath(), selectedFile.exists());
+        this.selectedFile = selectedFile;
+
         Iterator<Sheet> iterator = null;
+        LOGGER.debug("Try to find Codes");
         try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(selectedFile))) {
             iterator = workbook.sheetIterator();
-            SheetWrap sheet = new SheetWrap(workbook.getSheet(SHEET_NAME_CODS));
+            XSSFSheet origSheet = workbook.getSheet(SHEET_NAME_CODS);
+            LOGGER.debug("origSheet == " + origSheet);
+
+            SheetWrap sheet = new SheetWrap(origSheet);
             LOGGER.info("Данные из таблицы: {}", sheet.getSheetName());
             for (Row rowIter : sheet.getRawSheet()) {
                 RowWrap row = new RowWrap(rowIter);
@@ -59,7 +67,7 @@ public class ReaderExcel {
                 clauseList.put(row.getCellStrValue(firstCell + A), new ClauseBean(row.getCellStrValue(firstCell + A), row.getCellStrValue(firstCell + B)));
             }
         }
-
+        LOGGER.debug("Founded Codes");
         while (iterator.hasNext()) {
             SheetWrap sheet = new SheetWrap(iterator.next());
             if (!SHEET_NAME_CODS.equalsIgnoreCase(sheet.getSheetName())) {
@@ -76,17 +84,16 @@ public class ReaderExcel {
                     // берем заголовки
                     if (menuItems == null) {
                         menuItems = new MenuItems(row.getCellStrValue(firstCell + A),
-                                                  row.getCellStrValue(firstCell + B),
-                                                  row.getCellStrValue(firstCell + C),
-                                                  row.getCellStrValue(firstCell + D),
-                                                  row.getCellStrValue(firstCell + E));
+                                row.getCellStrValue(firstCell + B),
+                                row.getCellStrValue(firstCell + C),
+                                row.getCellStrValue(firstCell + D),
+                                row.getCellStrValue(firstCell + E));
                         continue;
                     }
 
                     if (product != null && product.getRangeAddress().containsRow(row.getRowNum())) {
                         product.add(getSpecificationBean(row));
-                    }
-                    else {
+                    } else {
                         product = new ProductBeen(sheet.getCurrProdBlock(row), row.getCellStrValue(firstCell + A), row.getCellStrValue(firstCell + B));
                         product.add(getSpecificationBean(row));
                         productList.add(product);
@@ -112,17 +119,14 @@ public class ReaderExcel {
                 try {
                     readExcel(selectedFile);
                     boo = true;
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     LOGGER.error("Ошибка чтения", e);
                     boo = false;
-                }
-                catch (NotOfficeXmlFileException | POIXMLException e) {
+                } catch (NotOfficeXmlFileException | POIXMLException e) {
                     LOGGER.error(e.getMessage(), e);
                     boo = false;
                 }
-            }
-            else if (result == JFileChooser.CANCEL_OPTION) {
+            } else if (result == JFileChooser.CANCEL_OPTION) {
                 return false;
             }
 
@@ -147,9 +151,7 @@ public class ReaderExcel {
 
                 int i = name.lastIndexOf('.');
 
-                if (i > 0 && i < name.length() - 1)
-
-                {
+                if (i > 0 && i < name.length() - 1) {
                     return name.substring(i + 1).equalsIgnoreCase("xlsx");
                 }
 

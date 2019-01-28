@@ -1,5 +1,6 @@
 .idea/
 target/
+/home/lihacheff/Work/out/rebus/sourcetst
 *.iml
 /.settings
 /.classpath

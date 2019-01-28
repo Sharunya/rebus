@@ -10,6 +10,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.filechooser.FileFilter;
+
+import org.apache.poi.ooxml.POIXMLException;
+import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -31,19 +37,19 @@ public class ReaderExcel {
     private static final int C = 2;
     private static final int D = 3;
     private static final int E = 4;
+    public File selectedFile = new File("./source.xlsx");
     //
     protected Map<String, ClauseBean> clauseList = new HashMap<>();
     protected List<ProductBeen> productList = new ArrayList<>();
     protected MenuItems menuItems;
-    private final File file = new File("./source.xlsx");
     /**
      * Первая колонка
      */
     private int firstCell;
 
-    public void readExcel() throws IOException, ParseException {
-        Iterator<Sheet> iterator;
-        try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(file))) {
+    public void readExcel(File selectedFile) throws IOException, ParseException {
+        Iterator<Sheet> iterator = null;
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(selectedFile))) {
             iterator = workbook.sheetIterator();
             SheetWrap sheet = new SheetWrap(workbook.getSheet(SHEET_NAME_CODS));
             LOGGER.info("Данные из таблицы: {}", sheet.getSheetName());
@@ -91,17 +97,38 @@ public class ReaderExcel {
         }
     }
 
-    public void getDataExcel() {
-        try {
-            readExcel();
+    public boolean getDataExcel() throws ParseException {
+        JFileChooser jFileChooser = new JFileChooser();
+        jFileChooser.setCurrentDirectory(new File("./"));
+        jFileChooser.addChoosableFileFilter(new XlsxFileFilter());
+        boolean boo = false;
+
+        do {
+            int result = jFileChooser.showOpenDialog(new JFrame());
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = jFileChooser.getSelectedFile();
+
+                try {
+                    readExcel(selectedFile);
+                    boo = true;
+                }
+                catch (IOException e) {
+                    LOGGER.error("Ошибка чтения", e);
+                    boo = false;
+                }
+                catch (NotOfficeXmlFileException | POIXMLException e) {
+                    LOGGER.error(e.getMessage(), e);
+                    boo = false;
+                }
+            }
+            else if (result == JFileChooser.CANCEL_OPTION) {
+                return false;
+            }
 
         }
-        catch (IOException e) {
-            LOGGER.error("Ошибка чтения", e);
-        }
-        catch (ParseException e) {
-            LOGGER.error("Ошибка парсинга", e);
-        }
+        while (!boo);
+        return true;
     }
 
     private SpecificationBean getSpecificationBean(RowWrap row) throws ParseException {
@@ -110,4 +137,32 @@ public class ReaderExcel {
         return new SpecificationBean(row.getCellStrValue(firstCell + C), row.getCellStrValue(firstCell + D), clauseBean.getId(), clauseBean.getText());
     }
 
+    class XlsxFileFilter extends FileFilter {
+        @Override
+        public boolean accept(File f) {
+
+            if (f != null) {
+
+                String name = f.getName();
+
+                int i = name.lastIndexOf('.');
+
+                if (i > 0 && i < name.length() - 1)
+
+                {
+                    return name.substring(i + 1).equalsIgnoreCase("xlsx");
+                }
+
+            }
+
+            return false;
+
+        }
+
+        @Override
+        public String getDescription() {
+            return "Файлы xlsx";
+
+        }
+    }
 }

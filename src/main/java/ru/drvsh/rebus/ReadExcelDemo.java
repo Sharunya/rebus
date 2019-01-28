@@ -1,10 +1,8 @@
 package ru.drvsh.rebus;
 
-import java.text.ParseException;
-
 public class ReadExcelDemo {
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) {
         ReaderExcel readerExcel = new ReaderExcel();
         try {
 

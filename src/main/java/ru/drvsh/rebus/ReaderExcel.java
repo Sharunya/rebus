@@ -38,11 +38,11 @@ public class ReaderExcel {
     private static final int C = 2;
     private static final int D = 3;
     private static final int E = 4;
-    public File selectedFile = null;
+    File selectedFile;
+    List<ProductBeen> productList = new ArrayList<>();
+    MenuItems menuItems;
     //
-    protected Map<String, ClauseBean> clauseList = new HashMap<>();
-    protected List<ProductBeen> productList = new ArrayList<>();
-    protected MenuItems menuItems;
+    private final Map<String, ClauseBean> clauseList = new HashMap<>();
     /**
      * Первая колонка
      */
@@ -57,7 +57,7 @@ public class ReaderExcel {
         try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(selectedFile))) {
             iterator = workbook.sheetIterator();
             XSSFSheet origSheet = workbook.getSheet(SHEET_NAME_CODS);
-            LOGGER.debug("origSheet == " + origSheet);
+            LOGGER.debug("origSheet == {}", origSheet);
 
             SheetWrap sheet = new SheetWrap(origSheet);
             LOGGER.info("Данные из таблицы: {}", sheet.getSheetName());
@@ -114,10 +114,9 @@ public class ReaderExcel {
             int result = jFileChooser.showOpenDialog(new JFrame());
 
             if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = jFileChooser.getSelectedFile();
 
                 try {
-                    readExcel(selectedFile);
+                    readExcel(jFileChooser.getSelectedFile());
                     boo = true;
                 } catch (IOException e) {
                     LOGGER.error("Ошибка чтения", e);
@@ -137,7 +136,6 @@ public class ReaderExcel {
 
     private SpecificationBean getSpecificationBean(RowWrap row) throws ParseException {
         ClauseBean clauseBean = clauseList.get(row.getCellStrValue(firstCell + E));
-        System.out.println(row.getRawRow().getRowNum());
         return new SpecificationBean(row.getCellStrValue(firstCell + C), row.getCellStrValue(firstCell + D), clauseBean.getId(), clauseBean.getText());
     }
 

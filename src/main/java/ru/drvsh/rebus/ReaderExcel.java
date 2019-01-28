@@ -18,6 +18,7 @@ import org.apache.poi.ooxml.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,21 +38,28 @@ public class ReaderExcel {
     private static final int C = 2;
     private static final int D = 3;
     private static final int E = 4;
-    public File selectedFile = new File("./source.xlsx");
+    File selectedFile;
+    List<ProductBeen> productList = new ArrayList<>();
+    MenuItems menuItems;
     //
-    protected Map<String, ClauseBean> clauseList = new HashMap<>();
-    protected List<ProductBeen> productList = new ArrayList<>();
-    protected MenuItems menuItems;
+    private final Map<String, ClauseBean> clauseList = new HashMap<>();
     /**
      * Первая колонка
      */
     private int firstCell;
 
     public void readExcel(File selectedFile) throws IOException, ParseException {
+        LOGGER.debug("{} {} {}", selectedFile, selectedFile.getPath(), selectedFile.exists());
+        this.selectedFile = selectedFile;
+
         Iterator<Sheet> iterator = null;
+        LOGGER.debug("Try to find Codes");
         try (XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(selectedFile))) {
             iterator = workbook.sheetIterator();
-            SheetWrap sheet = new SheetWrap(workbook.getSheet(SHEET_NAME_CODS));
+            XSSFSheet origSheet = workbook.getSheet(SHEET_NAME_CODS);
+            LOGGER.debug("origSheet == {}", origSheet);
+
+            SheetWrap sheet = new SheetWrap(origSheet);
             LOGGER.info("Данные из таблицы: {}", sheet.getSheetName());
             for (Row rowIter : sheet.getRawSheet()) {
                 RowWrap row = new RowWrap(rowIter);
@@ -59,7 +67,7 @@ public class ReaderExcel {
                 clauseList.put(row.getCellStrValue(firstCell + A), new ClauseBean(row.getCellStrValue(firstCell + A), row.getCellStrValue(firstCell + B)));
             }
         }
-
+        LOGGER.debug("Founded Codes");
         while (iterator.hasNext()) {
             SheetWrap sheet = new SheetWrap(iterator.next());
             if (!SHEET_NAME_CODS.equalsIgnoreCase(sheet.getSheetName())) {
@@ -107,10 +115,9 @@ public class ReaderExcel {
             int result = jFileChooser.showOpenDialog(new JFrame());
 
             if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = jFileChooser.getSelectedFile();
 
                 try {
-                    readExcel(selectedFile);
+                    readExcel(jFileChooser.getSelectedFile());
                     boo = true;
                 }
                 catch (IOException e) {
@@ -133,7 +140,6 @@ public class ReaderExcel {
 
     private SpecificationBean getSpecificationBean(RowWrap row) throws ParseException {
         ClauseBean clauseBean = clauseList.get(row.getCellStrValue(firstCell + E));
-        System.out.println(row.getRawRow().getRowNum());
         return new SpecificationBean(row.getCellStrValue(firstCell + C), row.getCellStrValue(firstCell + D), clauseBean.getId(), clauseBean.getText());
     }
 
@@ -147,9 +153,7 @@ public class ReaderExcel {
 
                 int i = name.lastIndexOf('.');
 
-                if (i > 0 && i < name.length() - 1)
-
-                {
+                if (i > 0 && i < name.length() - 1) {
                     return name.substring(i + 1).equalsIgnoreCase("xlsx");
                 }
 

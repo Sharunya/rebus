@@ -40,7 +40,7 @@
                         <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>ui.App</mainClass>
+                            <mainClass>ru.drvsh.rebus.ReadExcelDemo</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

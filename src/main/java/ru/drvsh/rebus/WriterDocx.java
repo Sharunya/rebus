@@ -16,7 +16,6 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.apache.xmlbeans.XmlCursor;
-import org.apache.xmlbeans.XmlException;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBody;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTBorder;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
@@ -162,9 +161,6 @@ public class WriterDocx {
         }
         catch (IOException e) {
             LOGGER.error("Ошибка записи", e);
-        }
-        catch (XmlException e) {
-            LOGGER.error("Ошибка создания CTPicture", e);
         }
         finally {
             LOGGER.info("Документ word '{}' записан", pathname);
